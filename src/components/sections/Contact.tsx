@@ -1,8 +1,8 @@
 "use client";
 
-import { ContactForm } from "@/components/ui/contact-form";
-import { ContactInfo } from "@/components/ui/contact-info";
-import { Map } from "@/components/ui/map";
+import { ContactForm } from "@/components/ui/ContactForm";
+import { ContactInfo } from "@/components/ui/ContactInfo";
+import { Map } from "@/components/ui/Map";
 
 export default function Contact() {
   return (
