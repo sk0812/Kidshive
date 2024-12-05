@@ -22,6 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        <script
+          src="https://static.elfsight.com/platform/platform.js"
+          async
+        ></script>
+      </head>
       <body className={`${poppins.variable} font-sans antialiased`}>
         <AuthProvider>
           <Navbar />

@@ -45,11 +45,8 @@ export default function Navbar() {
           <div className="hidden md:flex md:items-center md:space-x-4">
             {!user ? (
               <>
-                <Button variant="ghost" asChild>
-                  <Link href="/signin">Sign in</Link>
-                </Button>
                 <Button asChild>
-                  <Link href="/signup">Sign up</Link>
+                  <Link href="/signin">Sign in</Link>
                 </Button>
               </>
             ) : (
@@ -99,13 +96,6 @@ export default function Navbar() {
                   onClick={() => setIsOpen(false)}
                 >
                   Sign in
-                </Link>
-                <Link
-                  href="/signup"
-                  className="block px-3 py-2 text-base font-medium text-primary hover:text-primary/80 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Sign up
                 </Link>
               </>
             ) : (
