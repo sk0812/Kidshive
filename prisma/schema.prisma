@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int        @id @default(autoincrement())
+  email       String     @unique
+  password    String
+  name        String
+  role        Role
+  phoneNumber String?
+  address     String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  blogPosts   BlogPost[]
+  calendar    Calendar[]
+  invoices    Invoice[]
+  notes       Note[]
+  Photo       Photo[]
+  children    Child[]    @relation("ParentChild")
+}
+
+model Child {
+  id               Int        @id @default(autoincrement())
+  name             String
+  dob              DateTime
+  healthInfo       String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  allergies        String?
+  medications      String?
+  emergencyContact String?
+  specialNeeds     String?
+  calendar         Calendar[]
+  invoices         Invoice[]
+  notes            Note[]
+  parents          User[]     @relation("ParentChild")
+}
+
+model Invoice {
+  id        Int           @id @default(autoincrement())
+  parentId  Int
+  childId   Int
+  amount    Float
+  status    InvoiceStatus
+  dueDate   DateTime
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  child     Child         @relation(fields: [childId], references: [id])
+  parent    User          @relation(fields: [parentId], references: [id])
+  payments  Payment[]
+}
+
+model BlogPost {
+  id        Int      @id @default(autoincrement())
+  title     String   @unique
+  content   String
+  authorId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  author    User     @relation(fields: [authorId], references: [id])
+  photos    Photo[]
+}
+
+model Note {
+  id          Int      @id @default(autoincrement())
+  childId     Int
+  assistantId Int
+  type        NoteType
+  content     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  assistant   User     @relation(fields: [assistantId], references: [id])
+  child       Child    @relation(fields: [childId], references: [id])
+}
+
+model Policy {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Calendar {
+  id         Int              @id @default(autoincrement())
+  childId    Int
+  date       DateTime
+  attendance AttendanceStatus
+  napTime    String?
+  food       String?
+  medicine   String?
+  notes      String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  userId     Int?
+  child      Child            @relation(fields: [childId], references: [id])
+  User       User?            @relation(fields: [userId], references: [id])
+}
+
+model Photo {
+  id          Int           @id @default(autoincrement())
+  url         String
+  category    PhotoCategory
+  title       String?
+  description String?
+  uploadedBy  Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  blogPostId  Int?
+  blogPost    BlogPost?     @relation(fields: [blogPostId], references: [id])
+  user        User          @relation(fields: [uploadedBy], references: [id])
+}
+
+model Payment {
+  id        Int           @id @default(autoincrement())
+  invoiceId Int
+  amount    Float
+  status    PaymentStatus
+  method    String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  invoice   Invoice       @relation(fields: [invoiceId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  PARENT
+  ASSISTANT
+}
+
+enum InvoiceStatus {
+  PAID
+  UNPAID
+  PENDING
+}
+
+enum NoteType {
+  ACCIDENT
+  INCIDENT
+  DAILY_SUMMARY
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HOLIDAY
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum PhotoCategory {
+  GALLERY
+  BLOG
+  ACTIVITY
+}
