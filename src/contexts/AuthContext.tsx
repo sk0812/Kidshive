@@ -9,6 +9,7 @@ type ExtendedUser = {
   email?: string;
   role?: string;
   name?: string;
+  phoneNumber?: string;
 };
 
 interface AuthContextType {
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: session.user.email,
             role: userData.role,
             name: userData.name,
+            phoneNumber: userData.phoneNumber,
           });
         } catch (error) {
           console.error("Error fetching user data:", error);

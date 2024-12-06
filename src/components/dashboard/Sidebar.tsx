@@ -2,15 +2,7 @@
 
 import React from "react";
 import { cn } from "../../lib/utils";
-import {
-  Users,
-  UserCog,
-  Receipt,
-  Settings,
-  Baby,
-  Calendar,
-  MessageSquare,
-} from "lucide-react";
+import { Users, UserCog, Receipt, Settings } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
 type Tab = {
@@ -26,24 +18,6 @@ const menuItems: Tab[] = [
     icon: Users,
     id: "parents",
     roles: ["ADMIN", "ASSISTANT"],
-  },
-  {
-    title: "Children",
-    icon: Baby,
-    id: "children",
-    roles: ["ADMIN", "ASSISTANT", "PARENT"],
-  },
-  {
-    title: "Schedule",
-    icon: Calendar,
-    id: "schedule",
-    roles: ["ADMIN", "ASSISTANT", "PARENT"],
-  },
-  {
-    title: "Messages",
-    icon: MessageSquare,
-    id: "messages",
-    roles: ["ADMIN", "ASSISTANT", "PARENT"],
   },
   {
     title: "Invoices",

@@ -21,11 +21,12 @@ import { AddChild } from "../AddChild";
 import { Plus, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
 
 interface Child {
   id: string;
   name: string;
-  dateOfBirth: string;
+  dob: string;
   allergies: string;
   specialNeeds: string | null;
 }
@@ -58,6 +59,7 @@ export function ParentsTab() {
     phoneNumber: "",
   });
   const [editSuccess, setEditSuccess] = useState(false);
+  const router = useRouter();
 
   const fetchParents = async () => {
     try {
@@ -163,52 +165,55 @@ export function ParentsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end space-x-4">
-        <Dialog open={addUserOpen} onOpenChange={setAddUserOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Parent
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogTitle>Add New Parent</DialogTitle>
-            <AddUser
-              defaultRole="PARENT"
-              onUserAdded={() => {
-                setAddUserOpen(false);
-                fetchParents();
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={addChildOpen} onOpenChange={setAddChildOpen}>
-          <DialogTrigger asChild>
-            <Button variant="secondary">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Child
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogTitle>Add New Child</DialogTitle>
-            <AddChild
-              onChildAdded={() => {
-                setAddChildOpen(false);
-                fetchParents();
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-
       <div className="max-w-4xl">
         <Card>
           <CardHeader>
-            <CardTitle>Parents Directory</CardTitle>
-            <CardDescription>
-              List of all registered parents and their children
-            </CardDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Parents Directory</CardTitle>
+                <CardDescription>
+                  List of all registered parents and their children
+                </CardDescription>
+              </div>
+              <div className="flex space-x-2">
+                <Dialog open={addUserOpen} onOpenChange={setAddUserOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Parent
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogTitle>Add New Parent</DialogTitle>
+                    <AddUser
+                      defaultRole="PARENT"
+                      onUserAdded={() => {
+                        setAddUserOpen(false);
+                        fetchParents();
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={addChildOpen} onOpenChange={setAddChildOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="secondary">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Child
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogTitle>Add New Child</DialogTitle>
+                    <AddChild
+                      onChildAdded={() => {
+                        setAddChildOpen(false);
+                        fetchParents();
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {parents.length === 0 ? (
@@ -319,14 +324,20 @@ export function ParentsTab() {
                         <h4 className="text-sm font-medium">Children</h4>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {parent.children.map((child) => (
-                            <Card key={child.id}>
+                            <Card
+                              key={child.id}
+                              className="cursor-pointer hover:bg-accent/50 transition-colors"
+                              onClick={() =>
+                                router.push(`/dashboard/child/${child.id}`)
+                              }
+                            >
                               <CardContent className="p-3">
                                 <p className="font-medium">{child.name}</p>
                                 <p className="text-sm text-muted-foreground">
                                   Born:{" "}
-                                  {new Date(
-                                    child.dateOfBirth
-                                  ).toLocaleDateString()}
+                                  {new Date(child.dob).toLocaleDateString(
+                                    "en-GB"
+                                  )}
                                 </p>
                               </CardContent>
                             </Card>

@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 interface AddChildProps {
   onChildAdded?: () => void;
@@ -31,12 +33,12 @@ export function AddChild({ onChildAdded }: AddChildProps) {
   const [parents, setParents] = useState<Array<{ id: string; name: string }>>(
     []
   );
+  const [selectedParents, setSelectedParents] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     dob: "",
     allergies: "",
     specialNeeds: "",
-    parentId: "",
   });
 
   // Fetch parents when component mounts
@@ -68,6 +70,11 @@ export function AddChild({ onChildAdded }: AddChildProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (selectedParents.length === 0) {
+      setError("Please select at least one parent");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setSuccess(false);
@@ -76,7 +83,6 @@ export function AddChild({ onChildAdded }: AddChildProps) {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-
       if (!session?.access_token) {
         throw new Error("Not authenticated");
       }
@@ -87,7 +93,10 @@ export function AddChild({ onChildAdded }: AddChildProps) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          parentIds: selectedParents,
+        }),
       });
 
       const result = await response.json();
@@ -102,8 +111,8 @@ export function AddChild({ onChildAdded }: AddChildProps) {
         dob: "",
         allergies: "",
         specialNeeds: "",
-        parentId: "",
       });
+      setSelectedParents([]);
 
       onChildAdded?.();
     } catch (error) {
@@ -113,11 +122,15 @@ export function AddChild({ onChildAdded }: AddChildProps) {
     }
   };
 
+  const removeParent = (parentId: string) => {
+    setSelectedParents((prev) => prev.filter((id) => id !== parentId));
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Add New Child</CardTitle>
-        <CardDescription>Add a child to a parent's account</CardDescription>
+        <CardDescription>Add a child to parent accounts</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -171,22 +184,42 @@ export function AddChild({ onChildAdded }: AddChildProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="parent">Parent</Label>
+            <Label>Parents</Label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {selectedParents.map((parentId) => {
+                const parent = parents.find((p) => p.id === parentId);
+                return (
+                  <Badge key={parentId} variant="secondary">
+                    {parent?.name}
+                    <button
+                      type="button"
+                      onClick={() => removeParent(parentId)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                );
+              })}
+            </div>
             <Select
-              value={formData.parentId}
-              onValueChange={(value) =>
-                setFormData({ ...formData, parentId: value })
-              }
+              onValueChange={(value) => {
+                if (!selectedParents.includes(value)) {
+                  setSelectedParents((prev) => [...prev, value]);
+                }
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a parent" />
               </SelectTrigger>
               <SelectContent>
-                {parents.map((parent) => (
-                  <SelectItem key={parent.id} value={parent.id}>
-                    {parent.name}
-                  </SelectItem>
-                ))}
+                {parents
+                  .filter((parent) => !selectedParents.includes(parent.id))
+                  .map((parent) => (
+                    <SelectItem key={parent.id} value={parent.id}>
+                      {parent.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

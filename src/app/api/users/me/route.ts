@@ -35,7 +35,8 @@ export async function GET(request: Request) {
         id: true,
         email: true,
         role: true,
-        name: true
+        name: true,
+        phoneNumber: true
       }
     });
 

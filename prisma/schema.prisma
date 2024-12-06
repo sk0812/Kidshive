@@ -43,7 +43,7 @@ model Parent {
   id           String       @id
   relationship Relationship
   user         User         @relation(fields: [id], references: [id])
-  children     Child[]
+  children     Child[] // Changed to many-to-many
 }
 
 model Child {
@@ -56,10 +56,8 @@ model Child {
   emergencyContact String?
   specialNeeds     String?
 
-  // Relations
-  parent   Parent @relation(fields: [parentId], references: [id])
-  parentId String
-
+  // Change to many-to-many relationship
+  parents   Parent[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   User      User?    @relation(fields: [userId], references: [id])

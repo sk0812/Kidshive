@@ -22,23 +22,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, dob, allergies, specialNeeds, parentId } = await request.json();
+    const { name, dob, allergies, specialNeeds, parentIds } = await request.json();
 
-    if (!parentId) {
-      return NextResponse.json({ success: false, error: 'Parent ID is required' }, { status: 400 });
+    if (!parentIds || parentIds.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'At least one parent ID is required' },
+        { status: 400 }
+      );
     }
 
-    // Create child with proper parent relation
+    // Create child with multiple parent connections
     const child = await prisma.child.create({
       data: {
         name,
         dob: new Date(dob),
         allergies: allergies || null,
         specialNeeds: specialNeeds || null,
-        parent: {
-          connect: {
-            id: parentId
-          }
+        parents: {
+          connect: parentIds.map(id => ({ id }))
         }
       },
     });

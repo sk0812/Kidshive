@@ -8,17 +8,14 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "../../components/dashboard/Sidebar";
 import { ParentsTab } from "../../components/dashboard/tabs/ParentsTab";
-import { ChildrenTab } from "../../components/dashboard/tabs/ChildrenTab";
 import { UsersTab } from "../../components/dashboard/tabs/UsersTab";
 import { InvoicesTab } from "../../components/dashboard/tabs/InvoicesTab";
 import { SettingsTab } from "../../components/dashboard/tabs/SettingsTab";
-import { ScheduleTab } from "../../components/dashboard/tabs/ScheduleTab";
-import { MessagesTab } from "../../components/dashboard/tabs/MessagesTab";
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("users");
+  const [activeTab, setActiveTab] = useState("parents");
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -45,12 +42,6 @@ export default function DashboardPage() {
     switch (activeTab) {
       case "parents":
         return <ParentsTab />;
-      case "children":
-        return <ChildrenTab />;
-      case "schedule":
-        return <ScheduleTab />;
-      case "messages":
-        return <MessagesTab />;
       case "invoices":
         return <InvoicesTab />;
       case "users":
