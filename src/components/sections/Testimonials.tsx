@@ -10,7 +10,7 @@ export default function Testimonials() {
         </div>
 
         {/* Elfsight Google Reviews Widget */}
-        <div className="max-w-5xl mx-auto">
+        <div className="mx-auto">
           <div className="elfsight-app-3344864e-dfa7-4697-850e-0f1f422bb00d"></div>
         </div>
       </div>

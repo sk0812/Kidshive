@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import SignIn from "./SignIn";
-import SignUp from "./SignUp";
 
 export default function Auth() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -31,7 +30,7 @@ export default function Auth() {
           Sign Up
         </button>
       </div>
-      {mode === "signin" ? <SignIn /> : <SignUp />}
+      <SignIn />
     </div>
   );
 }

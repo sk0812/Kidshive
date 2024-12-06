@@ -7,160 +7,73 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Base User model
 model User {
-  id          Int        @id @default(autoincrement())
-  email       String     @unique
+  id          String  @id @default(uuid())
+  email       String  @unique
   password    String
   name        String
   role        Role
   phoneNumber String?
-  address     String?
-  isActive    Boolean    @default(true)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  blogPosts   BlogPost[]
-  calendar    Calendar[]
-  invoices    Invoice[]
-  notes       Note[]
-  Photo       Photo[]
-  children    Child[]    @relation("ParentChild")
+
+  // Relations based on type
+  admin     Admin?
+  assistant Assistant?
+  parent    Parent?
+  children  Child[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Admin model extending User
+model Admin {
+  id   String @id
+  user User   @relation(fields: [id], references: [id])
+}
+
+// Assistant model extending User
+model Assistant {
+  id   String @id
+  user User   @relation(fields: [id], references: [id])
+}
+
+// Parent model extending User
+model Parent {
+  id           String       @id
+  relationship Relationship
+  user         User         @relation(fields: [id], references: [id])
+  children     Child[]
 }
 
 model Child {
-  id               Int        @id @default(autoincrement())
+  id               String   @id @default(uuid())
   name             String
   dob              DateTime
   healthInfo       String?
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
   allergies        String?
   medications      String?
   emergencyContact String?
   specialNeeds     String?
-  calendar         Calendar[]
-  invoices         Invoice[]
-  notes            Note[]
-  parents          User[]     @relation("ParentChild")
-}
 
-model Invoice {
-  id        Int           @id @default(autoincrement())
-  parentId  Int
-  childId   Int
-  amount    Float
-  status    InvoiceStatus
-  dueDate   DateTime
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  child     Child         @relation(fields: [childId], references: [id])
-  parent    User          @relation(fields: [parentId], references: [id])
-  payments  Payment[]
-}
+  // Relations
+  parent   Parent @relation(fields: [parentId], references: [id])
+  parentId String
 
-model BlogPost {
-  id        Int      @id @default(autoincrement())
-  title     String   @unique
-  content   String
-  authorId  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  author    User     @relation(fields: [authorId], references: [id])
-  photos    Photo[]
-}
-
-model Note {
-  id          Int      @id @default(autoincrement())
-  childId     Int
-  assistantId Int
-  type        NoteType
-  content     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  assistant   User     @relation(fields: [assistantId], references: [id])
-  child       Child    @relation(fields: [childId], references: [id])
-}
-
-model Policy {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Calendar {
-  id         Int              @id @default(autoincrement())
-  childId    Int
-  date       DateTime
-  attendance AttendanceStatus
-  napTime    String?
-  food       String?
-  medicine   String?
-  notes      String?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  userId     Int?
-  child      Child            @relation(fields: [childId], references: [id])
-  User       User?            @relation(fields: [userId], references: [id])
-}
-
-model Photo {
-  id          Int           @id @default(autoincrement())
-  url         String
-  category    PhotoCategory
-  title       String?
-  description String?
-  uploadedBy  Int
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  blogPostId  Int?
-  blogPost    BlogPost?     @relation(fields: [blogPostId], references: [id])
-  user        User          @relation(fields: [uploadedBy], references: [id])
-}
-
-model Payment {
-  id        Int           @id @default(autoincrement())
-  invoiceId Int
-  amount    Float
-  status    PaymentStatus
-  method    String?
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  invoice   Invoice       @relation(fields: [invoiceId], references: [id])
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
 }
 
 enum Role {
   ADMIN
-  PARENT
   ASSISTANT
+  PARENT
 }
 
-enum InvoiceStatus {
-  PAID
-  UNPAID
-  PENDING
-}
-
-enum NoteType {
-  ACCIDENT
-  INCIDENT
-  DAILY_SUMMARY
-}
-
-enum AttendanceStatus {
-  PRESENT
-  ABSENT
-  HOLIDAY
-}
-
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-}
-
-enum PhotoCategory {
-  GALLERY
-  BLOG
-  ACTIVITY
+enum Relationship {
+  MOTHER
+  FATHER
+  GUARDIAN
 }

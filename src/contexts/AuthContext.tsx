@@ -4,10 +4,17 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 
-type AuthContextType = {
-  user: User | null;
-  loading: boolean;
+type ExtendedUser = {
+  id: string;
+  email?: string;
+  role?: string;
+  name?: string;
 };
+
+interface AuthContextType {
+  user: ExtendedUser | null;
+  loading: boolean;
+}
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -15,19 +22,44 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ExtendedUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check active sessions and sets the user
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setLoading(true);
+
+      if (session?.user) {
+        try {
+          const response = await fetch("/api/users/me", {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
+          const userData = await response.json();
+
+          setUser({
+            id: session.user.id,
+            email: session.user.email,
+            role: userData.role,
+            name: userData.name,
+          });
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -37,6 +69,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);

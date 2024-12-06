@@ -8,7 +8,7 @@ import {
   Users,
   Apple,
 } from "lucide-react";
-import { Card } from "@/components/ui/Card";
+import { ServicesCard } from "@/components/ui/ServicesCard";
 
 const services = [
   {
@@ -61,7 +61,7 @@ export default function Services() {
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => (
-            <Card
+            <ServicesCard
               key={service.title}
               title={service.title}
               description={service.description}

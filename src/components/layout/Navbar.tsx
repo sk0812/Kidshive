@@ -9,8 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 const navigation = [
   { name: "Home", href: "/" },
   { name: "About", href: "#about" },
-  { name: "Contact", href: "#contact" },
   { name: "Testimonials", href: "#testimonials" },
+  { name: "Contact", href: "#contact" },
+  { name: "Blog", href: "/blog" },
 ];
 
 export default function Navbar() {
@@ -46,7 +47,7 @@ export default function Navbar() {
             {!user ? (
               <>
                 <Button asChild>
-                  <Link href="/signin">Sign in</Link>
+                  <Link href="/dashboard">Sign in</Link>
                 </Button>
               </>
             ) : (
