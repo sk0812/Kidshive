@@ -48,7 +48,8 @@ export async function GET(request: Request) {
         email: true,
         phoneNumber: true,
         parent: {
-          include: {
+          select: {
+            relationship: true,
             children: {
               select: {
                 id: true,
@@ -72,6 +73,7 @@ export async function GET(request: Request) {
       name: user.name,
       email: user.email,
       phoneNumber: user.phoneNumber,
+      relationship: user.parent?.relationship,
       children: user.parent?.children || []
     }));
 

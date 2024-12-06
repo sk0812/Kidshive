@@ -26,10 +26,19 @@ import {
   AlertCircle,
   Pill,
   FileText,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface ChildDetails {
   id: string;
@@ -57,34 +66,81 @@ export default function ChildDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [editingChild, setEditingChild] = useState(false);
+  const [editSuccess, setEditSuccess] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    dob: "",
+    allergies: "",
+    specialNeeds: "",
+    healthInfo: "",
+    medications: "",
+    emergencyContact: "",
+  });
+
+  const fetchChildDetails = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Not authenticated");
+
+      const response = await fetch(`/api/children/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch child details");
+
+      const data = await response.json();
+      setChild(data);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchChildDetails = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.access_token) throw new Error("Not authenticated");
-
-        const response = await fetch(`/api/children/${params.id}`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch child details");
-
-        const data = await response.json();
-        setChild(data);
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchChildDetails();
   }, [params.id]);
+
+  const handleEditChild = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditSuccess(false);
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Not authenticated");
+
+      const response = await fetch(`/api/children/${params.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(editFormData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update child");
+      }
+
+      setEditSuccess(true);
+      setTimeout(() => {
+        setEditingChild(false);
+        // Refetch child details
+        fetchChildDetails();
+      }, 1500);
+    } catch (error) {
+      console.error("Error updating child:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -114,7 +170,147 @@ export default function ChildDetailsPage() {
             </Button>
 
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">{child.name}</h2>
+              <div className="flex justify-between items-start">
+                <h2 className="text-2xl font-bold">{child.name}</h2>
+                <Dialog
+                  open={editingChild}
+                  onOpenChange={(open) => {
+                    if (open) {
+                      setEditFormData({
+                        name: child.name,
+                        dob: new Date(child.dob).toISOString().split("T")[0],
+                        allergies: child.allergies || "",
+                        specialNeeds: child.specialNeeds || "",
+                        healthInfo: child.healthInfo || "",
+                        medications: child.medications || "",
+                        emergencyContact: child.emergencyContact || "",
+                      });
+                    }
+                    setEditingChild(open);
+                  }}
+                >
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Child
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogTitle>Edit Child Details</DialogTitle>
+                    <form onSubmit={handleEditChild} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          value={editFormData.name}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              name: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="dob">Date of Birth</Label>
+                        <Input
+                          id="dob"
+                          name="dob"
+                          type="date"
+                          value={editFormData.dob}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              dob: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="allergies">Allergies</Label>
+                        <Input
+                          id="allergies"
+                          name="allergies"
+                          value={editFormData.allergies}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              allergies: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="specialNeeds">Special Needs</Label>
+                        <Input
+                          id="specialNeeds"
+                          name="specialNeeds"
+                          value={editFormData.specialNeeds}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              specialNeeds: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="healthInfo">Health Information</Label>
+                        <Input
+                          id="healthInfo"
+                          name="healthInfo"
+                          value={editFormData.healthInfo}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              healthInfo: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="medications">Medications</Label>
+                        <Input
+                          id="medications"
+                          name="medications"
+                          value={editFormData.medications}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              medications: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="emergencyContact">
+                          Emergency Contact
+                        </Label>
+                        <Input
+                          id="emergencyContact"
+                          name="emergencyContact"
+                          value={editFormData.emergencyContact}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              emergencyContact: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      {editSuccess && (
+                        <div className="text-sm text-green-500">
+                          Child details updated successfully!
+                        </div>
+                      )}
+                      <Button type="submit" className="w-full">
+                        Save Changes
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Calendar className="mr-2 h-4 w-4" />
                 Born: {new Date(child.dob).toLocaleDateString("en-GB")}

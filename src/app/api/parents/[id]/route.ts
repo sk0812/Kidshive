@@ -15,48 +15,71 @@ export async function PATCH(
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
-      return new NextResponse(
-        JSON.stringify({ success: false, error: 'Unauthorized' }), 
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' }, 
+        { status: 401 }
       );
     }
 
-    const { data: { user: requestingUser }, error: authError } = 
-      await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { name, email, phoneNumber, relationship } = await request.json();
 
-    if (authError || !requestingUser?.email) {
-      return new NextResponse(
-        JSON.stringify({ success: false, error: 'Unauthorized' }), 
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+    // Verify user exists before updating
+    const existingUser = await prisma.user.findUnique({
+      where: { id: params.id }
+    });
+
+    if (!existingUser) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
       );
     }
 
-    const { name, email, phoneNumber } = await request.json();
+    try {
+      // Update both user and parent records in a transaction
+      const [updatedUser, updatedParent] = await prisma.$transaction([
+        prisma.user.update({
+          where: { id: params.id },
+          data: {
+            name,
+            email,
+            phoneNumber,
+          },
+        }),
+        prisma.parent.update({
+          where: { id: params.id },
+          data: {
+            relationship,
+          },
+        })
+      ]);
 
-    const updatedUser = await prisma.user.update({
-      where: { id: params.id },
-      data: {
-        name,
+      // Update Supabase user
+      await supabase.auth.admin.updateUserById(params.id, {
         email,
-        phoneNumber,
-      },
-    });
+        user_metadata: { name, phoneNumber }
+      });
 
-    await supabase.auth.admin.updateUserById(params.id, {
-      email,
-      user_metadata: { name }
-    });
-
-    return new NextResponse(
-      JSON.stringify({ success: true, user: updatedUser }), 
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+      return NextResponse.json({ 
+        success: true, 
+        user: {
+          ...updatedUser,
+          relationship: updatedParent.relationship
+        }
+      });
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      return NextResponse.json(
+        { success: false, error: 'Failed to update user in database' },
+        { status: 500 }
+      );
+    }
 
   } catch (error) {
     console.error('Error updating parent:', error);
-    return new NextResponse(
-      JSON.stringify({ success: false, error: 'Failed to update parent' }), 
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    return NextResponse.json(
+      { success: false, error: 'Invalid request or server error' },
+      { status: 500 }
     );
   } finally {
     await prisma.$disconnect();

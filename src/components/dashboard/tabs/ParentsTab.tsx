@@ -18,10 +18,12 @@ import {
 } from "@/components/ui/dialog";
 import { AddUser } from "../AddUser";
 import { AddChild } from "../AddChild";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { ParentCard } from "../parents/ParentCard";
+import { ChildCard } from "../parents/ChildCard";
 
 interface Child {
   id: string;
@@ -29,6 +31,9 @@ interface Child {
   dob: string;
   allergies: string;
   specialNeeds: string | null;
+  healthInfo: string;
+  medications: string;
+  emergencyContact: string;
 }
 
 interface Parent {
@@ -36,6 +41,7 @@ interface Parent {
   name: string;
   email: string;
   phoneNumber?: string;
+  relationship: "MOTHER" | "FATHER" | "GUARDIAN";
   children: Child[];
 }
 
@@ -43,6 +49,32 @@ interface EditParentFormData {
   name: string;
   email: string;
   phoneNumber: string;
+}
+
+interface EditChildFormData {
+  name: string;
+  dob: string;
+  allergies: string;
+  specialNeeds: string;
+  healthInfo: string;
+  medications: string;
+  emergencyContact: string;
+}
+
+function groupParentsByChildren(parents: Parent[]) {
+  const groupedParents = new Map<string, Parent[]>();
+
+  parents.forEach((parent) => {
+    parent.children.forEach((child) => {
+      const existingGroup = groupedParents.get(child.id) || [];
+      groupedParents.set(child.id, [...existingGroup, parent]);
+    });
+  });
+
+  return Array.from(groupedParents.entries()).map(([childId, parents]) => ({
+    child: parents[0].children.find((c) => c.id === childId)!,
+    parents,
+  }));
 }
 
 export function ParentsTab() {
@@ -59,6 +91,19 @@ export function ParentsTab() {
     phoneNumber: "",
   });
   const [editSuccess, setEditSuccess] = useState(false);
+  const [editingChild, setEditingChild] = useState<Child | null>(null);
+  const [editChildFormData, setEditChildFormData] = useState<EditChildFormData>(
+    {
+      name: "",
+      dob: "",
+      allergies: "",
+      specialNeeds: "",
+      healthInfo: "",
+      medications: "",
+      emergencyContact: "",
+    }
+  );
+  const [editChildSuccess, setEditChildSuccess] = useState(false);
   const router = useRouter();
 
   const fetchParents = async () => {
@@ -151,6 +196,45 @@ export function ParentsTab() {
     }
   };
 
+  const handleEditChild = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditChildSuccess(false);
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Not authenticated");
+
+      const response = await fetch(`/api/children/${editingChild?.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(editChildFormData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update child");
+      }
+
+      setEditChildSuccess(true);
+      setTimeout(() => {
+        setEditingChild(null);
+        fetchParents();
+      }, 1500);
+    } catch (error) {
+      console.error("Error updating child:", error);
+    }
+  };
+
+  const handleEditSuccess = () => {
+    fetchParents();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -222,130 +306,13 @@ export function ParentsTab() {
               </div>
             ) : (
               <div className="grid gap-4">
-                {parents.map((parent) => (
-                  <div key={parent.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-medium">{parent.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {parent.email}
-                        </p>
-                        {parent.phoneNumber && (
-                          <p className="text-sm text-muted-foreground">
-                            {parent.phoneNumber}
-                          </p>
-                        )}
-                      </div>
-                      <Dialog
-                        open={editingParent?.id === parent.id}
-                        onOpenChange={(open) => {
-                          if (open) {
-                            setEditingParent(parent);
-                            setEditFormData({
-                              name: parent.name,
-                              email: parent.email,
-                              phoneNumber: parent.phoneNumber || "",
-                            });
-                          } else {
-                            setEditingParent(null);
-                          }
-                        }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Edit Details
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogTitle>Edit Parent Details</DialogTitle>
-                          <form
-                            onSubmit={handleEditParent}
-                            className="space-y-4"
-                          >
-                            <div className="space-y-2">
-                              <Label htmlFor="name">Name</Label>
-                              <Input
-                                id="name"
-                                value={editFormData.name}
-                                onChange={(e) =>
-                                  setEditFormData({
-                                    ...editFormData,
-                                    name: e.target.value,
-                                  })
-                                }
-                                required
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="email">Email</Label>
-                              <Input
-                                id="email"
-                                type="email"
-                                value={editFormData.email}
-                                onChange={(e) =>
-                                  setEditFormData({
-                                    ...editFormData,
-                                    email: e.target.value,
-                                  })
-                                }
-                                required
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="phoneNumber">Phone Number</Label>
-                              <Input
-                                id="phoneNumber"
-                                value={editFormData.phoneNumber}
-                                onChange={(e) =>
-                                  setEditFormData({
-                                    ...editFormData,
-                                    phoneNumber: e.target.value,
-                                  })
-                                }
-                                required
-                              />
-                            </div>
-                            {editSuccess && (
-                              <div className="text-sm text-green-500">
-                                Details updated successfully!
-                              </div>
-                            )}
-                            <Button type="submit" className="w-full">
-                              Save Changes
-                            </Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-
-                    {parent.children.length > 0 && (
-                      <div className="grid gap-2">
-                        <h4 className="text-sm font-medium">Children</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                          {parent.children.map((child) => (
-                            <Card
-                              key={child.id}
-                              className="cursor-pointer hover:bg-accent/50 transition-colors"
-                              onClick={() =>
-                                router.push(`/dashboard/child/${child.id}`)
-                              }
-                            >
-                              <CardContent className="p-3">
-                                <p className="font-medium">{child.name}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  Born:{" "}
-                                  {new Date(child.dob).toLocaleDateString(
-                                    "en-GB"
-                                  )}
-                                </p>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                {groupParentsByChildren(parents).map(({ child, parents }) => (
+                  <ChildCard
+                    key={child.id}
+                    child={child}
+                    parents={parents}
+                    onEdit={handleEditSuccess}
+                  />
                 ))}
               </div>
             )}
