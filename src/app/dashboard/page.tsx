@@ -54,7 +54,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex bg-background">
       {/* Sidebar - always visible on desktop */}
       <div className="w-64 flex-shrink-0 border-r border-border">
         <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />

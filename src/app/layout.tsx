@@ -29,10 +29,12 @@ export default function RootLayout({
           async
         ></script>
       </head>
-      <body className={`${poppins.variable} font-sans antialiased`}>
+      <body
+        className={`${poppins.variable} min-h-screen flex flex-col font-sans antialiased`}
+      >
         <AuthProvider>
           <Navbar />
-          <main className="pt-16">{children}</main>
+          <main className="pt-16 flex-grow">{children}</main>
           <Footer />
         </AuthProvider>
       </body>

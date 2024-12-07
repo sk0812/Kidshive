@@ -3,11 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import {
   Card,
   CardContent,
@@ -430,39 +425,15 @@ export default function ChildDetailsPage() {
       <div className="flex-1 p-6">
         <Card>
           <CardHeader>
-            <CardTitle>Schedule</CardTitle>
+            <CardTitle>Content Area</CardTitle>
             <CardDescription>
-              Track attendance, sleep times, meals, and daily notes
+              This space is reserved for future content
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <FullCalendar
-              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-              initialView="timeGridWeek"
-              headerToolbar={{
-                left: "prev,next today",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek,timeGridDay",
-              }}
-              height="700px"
-              slotMinTime="07:00:00"
-              slotMaxTime="18:00:00"
-              allDaySlot={false}
-              slotDuration="00:30:00"
-              weekends={false}
-              selectable={true}
-              selectMirror={true}
-              dayMaxEvents={true}
-              events={[]}
-              select={(info: DateSelectArg) => {
-                console.log("Selected:", info);
-                // We'll handle event creation later
-              }}
-              eventClick={(info: EventClickArg) => {
-                console.log("Event clicked:", info);
-                // We'll handle event viewing/editing later
-              }}
-            />
+            <div className="h-[700px] flex items-center justify-center text-muted-foreground">
+              Content coming soon...
+            </div>
           </CardContent>
         </Card>
       </div>
