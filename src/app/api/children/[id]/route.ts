@@ -12,9 +12,10 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const id = await params.id;
-
   try {
+    // Ensure params is resolved
+    const { id } = await params;
+
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
@@ -64,9 +65,10 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const id = await params.id;
-
   try {
+    // Ensure params is resolved
+    const { id } = await params;
+    
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
@@ -119,9 +121,10 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const id = await params.id;
-
   try {
+    // Ensure params is resolved
+    const { id } = await params;
+    
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
