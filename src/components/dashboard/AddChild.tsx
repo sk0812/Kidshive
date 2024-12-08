@@ -30,15 +30,12 @@ export function AddChild({ onChildAdded }: AddChildProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [parents, setParents] = useState<Array<{ id: string; name: string }>>(
-    []
-  );
+  const [parents, setParents] = useState<Parent[]>([]);
   const [selectedParents, setSelectedParents] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     dob: "",
     allergies: "",
-    specialNeeds: "",
   });
 
   // Fetch parents when component mounts
@@ -59,9 +56,17 @@ export function AddChild({ onChildAdded }: AddChildProps) {
         if (!response.ok) throw new Error("Failed to fetch parents");
 
         const data = await response.json();
-        setParents(data);
+
+        // Make sure we're setting the parents array from the response
+        if (data.success && Array.isArray(data.parents)) {
+          setParents(data.parents);
+        } else {
+          console.error("Unexpected parents data format:", data);
+          setParents([]);
+        }
       } catch (error) {
         console.error("Error fetching parents:", error);
+        setParents([]);
       }
     };
 
@@ -99,9 +104,13 @@ export function AddChild({ onChildAdded }: AddChildProps) {
         }),
       });
 
-      const result = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add child");
+      }
 
-      if (!response.ok || !result.success) {
+      const result = await response.json();
+      if (!result.success) {
         throw new Error(result.error || "Failed to add child");
       }
 
@@ -110,7 +119,6 @@ export function AddChild({ onChildAdded }: AddChildProps) {
         name: "",
         dob: "",
         allergies: "",
-        specialNeeds: "",
       });
       setSelectedParents([]);
 
@@ -172,18 +180,6 @@ export function AddChild({ onChildAdded }: AddChildProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="specialNeeds">Special Needs</Label>
-            <Input
-              id="specialNeeds"
-              value={formData.specialNeeds}
-              onChange={(e) =>
-                setFormData({ ...formData, specialNeeds: e.target.value })
-              }
-              placeholder="Any special needs or requirements (optional)"
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label>Parents</Label>
             <div className="flex flex-wrap gap-2 mb-2">
               {selectedParents.map((parentId) => {
@@ -213,13 +209,14 @@ export function AddChild({ onChildAdded }: AddChildProps) {
                 <SelectValue placeholder="Select a parent" />
               </SelectTrigger>
               <SelectContent>
-                {parents
-                  .filter((parent) => !selectedParents.includes(parent.id))
-                  .map((parent) => (
-                    <SelectItem key={parent.id} value={parent.id}>
-                      {parent.name}
-                    </SelectItem>
-                  ))}
+                {Array.isArray(parents) &&
+                  parents
+                    .filter((parent) => !selectedParents.includes(parent.id))
+                    .map((parent) => (
+                      <SelectItem key={parent.id} value={parent.id}>
+                        {parent.name}
+                      </SelectItem>
+                    ))}
               </SelectContent>
             </Select>
           </div>

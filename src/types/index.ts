@@ -3,7 +3,6 @@ export interface Child {
   name: string;
   dob: string;
   allergies: string;
-  specialNeeds: string | null;
   healthInfo: string;
   medications: string;
   emergencyContact: string;

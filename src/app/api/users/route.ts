@@ -11,40 +11,33 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: Request) {
   try {
-    // Verify the requesting user is authenticated and is an admin
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Verify the token and get the user
-    const { data: { user: requestingUser }, error: authError } = 
-      await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
-
-    if (authError || !requestingUser?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if the requesting user is an admin
-    const admin = await prisma.user.findUnique({
-      where: { email: requestingUser.email },
-      select: { role: true }
-    });
-
-    if (!admin || admin.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
-
-    // Process the new user creation
     const { email, password, name, role, phoneNumber, relationship } = await request.json();
 
-    // Hash the password
+    // Hash password for Prisma storage
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create user in Supabase first to get the UUID
+    const { data: authData, error: createError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { name, phoneNumber }
+    });
+
+    if (createError || !authData.user) {
+      return NextResponse.json(
+        { error: 'Failed to create Supabase user' },
+        { status: 500 }
+      );
+    }
+
+    const supabaseUserId = authData.user.id;
+
     try {
-      // Create user in Prisma first
+      // Create user in Prisma with Supabase UUID
       const prismaUser = await prisma.user.create({
         data: {
+          id: supabaseUserId, // Use Supabase UUID
           email,
           password: hashedPassword,
           name,
@@ -53,29 +46,12 @@ export async function POST(request: Request) {
         },
       });
 
-      // Create user in Supabase
-      const { error: createError } = await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: { prisma_id: prismaUser.id }
-      });
-
-      if (createError) {
-        // Rollback Prisma creation if Supabase fails
-        await prisma.user.delete({ where: { id: prismaUser.id } });
-        return NextResponse.json(
-          { error: 'Failed to create Supabase user' },
-          { status: 500 }
-        );
-      }
-
-      // Create role-specific record
+      // Create role-specific record with same UUID
       switch (role) {
         case 'PARENT':
           await prisma.parent.create({
             data: {
-              id: prismaUser.id,
+              id: supabaseUserId,
               relationship: relationship as 'MOTHER' | 'FATHER' | 'GUARDIAN'
             },
           });
@@ -83,42 +59,40 @@ export async function POST(request: Request) {
         case 'ADMIN':
           await prisma.admin.create({
             data: {
-              id: prismaUser.id
+              id: supabaseUserId
             },
           });
           break;
         case 'ASSISTANT':
           await prisma.assistant.create({
             data: {
-              id: prismaUser.id
+              id: supabaseUserId
             },
           });
           break;
       }
 
-      return new Response(JSON.stringify({ success: true, user: prismaUser }), {
-        headers: { 'Content-Type': 'application/json' },
+      return NextResponse.json({ 
+        success: true, 
+        user: prismaUser 
       });
 
-    } catch (error) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: error instanceof Error ? error.message : 'Failed to create user' 
-        }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    } catch (dbError) {
+      // If database creation fails, delete the Supabase user
+      await supabase.auth.admin.deleteUser(supabaseUserId);
+      console.error('Database error:', dbError);
+      return NextResponse.json(
+        { error: 'Failed to create user in database' },
+        { status: 500 }
+      );
     }
 
   } catch (error) {
     console.error('Error creating user:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create user' },
+      { error: 'Failed to create user' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 

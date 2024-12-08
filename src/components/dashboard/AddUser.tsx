@@ -21,8 +21,8 @@ import {
 import { supabase } from "@/lib/supabase";
 
 interface AddUserProps {
-  onUserAdded?: () => void;
-  defaultRole?: "ADMIN" | "ASSISTANT" | "PARENT";
+  defaultRole: "ADMIN" | "ASSISTANT" | "PARENT";
+  onUserAdded: (userId: string) => void;
 }
 
 type Relationship = "MOTHER" | "FATHER" | "GUARDIAN";
@@ -84,7 +84,7 @@ export function AddUser({ onUserAdded, defaultRole }: AddUserProps) {
         relationship: "",
       });
 
-      onUserAdded?.();
+      onUserAdded(result.user.id);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Failed to create user"

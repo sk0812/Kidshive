@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, dob, allergies, specialNeeds, parentIds } = await request.json();
+    const { name, dob, allergies, healthInfo, medications, emergencyContact, parentIds } = await request.json();
 
     if (!parentIds || parentIds.length === 0) {
       return NextResponse.json(
@@ -37,10 +37,25 @@ export async function POST(request: Request) {
         name,
         dob: new Date(dob),
         allergies: allergies || null,
-        specialNeeds: specialNeeds || null,
+        healthInfo: healthInfo || null,
+        medications: medications || null,
+        emergencyContact: emergencyContact || null,
         parents: {
-          connect: parentIds.map(id => ({ id }))
+          connect: parentIds.map((id: string) => ({ id }))
         }
+      },
+      include: {
+        parents: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                phoneNumber: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -54,6 +69,47 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to create child' 
+    }, { 
+      status: 500 
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const children = await prisma.child.findMany({
+      include: {
+        parents: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                phoneNumber: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      children 
+    });
+
+  } catch (error) {
+    console.error('Error fetching children:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: 'Failed to fetch children' 
     }, { 
       status: 500 
     });

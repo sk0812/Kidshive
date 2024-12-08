@@ -12,17 +12,19 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const id = await params.id;
+
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
-      return new NextResponse(
-        JSON.stringify({ success: false, error: 'Unauthorized' }), 
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
     const child = await prisma.child.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         parents: {
           include: {
@@ -39,22 +41,19 @@ export async function GET(
     });
 
     if (!child) {
-      return new NextResponse(
-        JSON.stringify({ success: false, error: 'Child not found' }), 
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      return NextResponse.json(
+        { success: false, error: 'Child not found' },
+        { status: 404 }
       );
     }
 
-    return new NextResponse(
-      JSON.stringify(child), 
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return NextResponse.json(child);
 
   } catch (error) {
-    console.error('Error fetching child:', error);
-    return new NextResponse(
-      JSON.stringify({ success: false, error: 'Failed to fetch child details' }), 
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    console.error('Error fetching child details:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch child details' },
+      { status: 500 }
     );
   } finally {
     await prisma.$disconnect();
@@ -65,40 +64,53 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const id = await params.id;
+
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
-      return new NextResponse(
-        JSON.stringify({ success: false, error: 'Unauthorized' }), 
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
-    const { name, dob, allergies, specialNeeds, healthInfo, medications, emergencyContact } = await request.json();
+    const { name, dob, allergies, healthInfo, medications, emergencyContact } = await request.json();
 
     const updatedChild = await prisma.child.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         dob: new Date(dob),
         allergies,
-        specialNeeds,
         healthInfo,
         medications,
         emergencyContact,
       },
+      include: {
+        parents: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                phoneNumber: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    return new NextResponse(
-      JSON.stringify({ success: true, child: updatedChild }), 
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return NextResponse.json({ success: true, child: updatedChild });
 
   } catch (error) {
     console.error('Error updating child:', error);
-    return new NextResponse(
-      JSON.stringify({ success: false, error: 'Failed to update child' }), 
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    return NextResponse.json(
+      { success: false, error: 'Failed to update child' },
+      { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 } 

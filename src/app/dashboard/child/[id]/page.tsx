@@ -40,7 +40,6 @@ interface ChildDetails {
   name: string;
   dob: string;
   allergies: string | null;
-  specialNeeds: string | null;
   healthInfo: string | null;
   medications: string | null;
   emergencyContact: string | null;
@@ -67,7 +66,6 @@ export default function ChildDetailsPage() {
     name: "",
     dob: "",
     allergies: "",
-    specialNeeds: "",
     healthInfo: "",
     medications: "",
     emergencyContact: "",
@@ -175,7 +173,6 @@ export default function ChildDetailsPage() {
                         name: child.name,
                         dob: new Date(child.dob).toISOString().split("T")[0],
                         allergies: child.allergies || "",
-                        specialNeeds: child.specialNeeds || "",
                         healthInfo: child.healthInfo || "",
                         medications: child.medications || "",
                         emergencyContact: child.emergencyContact || "",
@@ -236,20 +233,7 @@ export default function ChildDetailsPage() {
                           }
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="specialNeeds">Special Needs</Label>
-                        <Input
-                          id="specialNeeds"
-                          name="specialNeeds"
-                          value={editFormData.specialNeeds}
-                          onChange={(e) =>
-                            setEditFormData({
-                              ...editFormData,
-                              specialNeeds: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
+
                       <div className="space-y-2">
                         <Label htmlFor="healthInfo">Health Information</Label>
                         <Input
@@ -317,10 +301,7 @@ export default function ChildDetailsPage() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Medical Information</h3>
 
-              {!child.allergies &&
-              !child.medications &&
-              !child.specialNeeds &&
-              !child.healthInfo ? (
+              {!child.allergies && !child.medications && !child.healthInfo ? (
                 <p className="text-sm text-muted-foreground">
                   No medical information available
                 </p>
@@ -345,18 +326,6 @@ export default function ChildDetailsPage() {
                         <p className="font-medium">Medications</p>
                         <p className="text-sm text-muted-foreground">
                           {child.medications}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {child.specialNeeds && (
-                    <div className="flex items-start space-x-2">
-                      <Heart className="h-4 w-4 mt-1" />
-                      <div>
-                        <p className="font-medium">Special Needs</p>
-                        <p className="text-sm text-muted-foreground">
-                          {child.specialNeeds}
                         </p>
                       </div>
                     </div>

@@ -54,7 +54,6 @@ model Child {
   allergies        String?
   medications      String?
   emergencyContact String?
-  specialNeeds     String?
 
   // Change to many-to-many relationship
   parents   Parent[]

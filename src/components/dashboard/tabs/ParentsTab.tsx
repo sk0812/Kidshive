@@ -18,19 +18,28 @@ import {
 } from "@/components/ui/dialog";
 import { AddUser } from "../AddUser";
 import { AddChild } from "../AddChild";
-import { Plus, Pencil, ChevronRight } from "lucide-react";
+import { Plus, Pencil, ChevronRight, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { ParentCard } from "../parents/ParentCard";
 import { ChildCard } from "../parents/ChildCard";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Child {
   id: string;
   name: string;
   dob: string;
   allergies: string;
-  specialNeeds: string | null;
   healthInfo: string;
   medications: string;
   emergencyContact: string;
@@ -55,7 +64,6 @@ interface EditChildFormData {
   name: string;
   dob: string;
   allergies: string;
-  specialNeeds: string;
   healthInfo: string;
   medications: string;
   emergencyContact: string;
@@ -63,18 +71,26 @@ interface EditChildFormData {
 
 function groupParentsByChildren(parents: Parent[]) {
   const groupedParents = new Map<string, Parent[]>();
+  const parentsWithNoChildren = new Set(parents);
 
+  // Map children to their parents
   parents.forEach((parent) => {
     parent.children.forEach((child) => {
       const existingGroup = groupedParents.get(child.id) || [];
       groupedParents.set(child.id, [...existingGroup, parent]);
+      parentsWithNoChildren.delete(parent);
     });
   });
 
-  return Array.from(groupedParents.entries()).map(([childId, parents]) => ({
-    child: parents[0].children.find((c) => c.id === childId)!,
-    parents,
-  }));
+  return {
+    childrenGroups: Array.from(groupedParents.entries()).map(
+      ([childId, parents]) => ({
+        child: parents[0].children.find((c) => c.id === childId)!,
+        parents,
+      })
+    ),
+    parentsWithNoChildren: Array.from(parentsWithNoChildren),
+  };
 }
 
 export function ParentsTab() {
@@ -97,13 +113,14 @@ export function ParentsTab() {
       name: "",
       dob: "",
       allergies: "",
-      specialNeeds: "",
       healthInfo: "",
       medications: "",
       emergencyContact: "",
     }
   );
   const [editChildSuccess, setEditChildSuccess] = useState(false);
+  const [deletingParent, setDeletingParent] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
   const fetchParents = async () => {
@@ -125,18 +142,18 @@ export function ParentsTab() {
       if (!response.ok) {
         const errorData = await response.text();
         throw new Error(
-          `Failed to fetch parents: ${response.status} ${response.statusText}. ${errorData}`
+          `Failed to fetch data: ${response.status} ${response.statusText}. ${errorData}`
         );
       }
 
       const data = await response.json();
-      setParents(data);
+      setParents(data.parents);
     } catch (error) {
-      console.error("Parent fetch error:", error);
+      console.error("Data fetch error:", error);
       setError(
         error instanceof Error
           ? `Error: ${error.message}`
-          : "Failed to fetch parents"
+          : "Failed to fetch data"
       );
     } finally {
       setLoading(false);
@@ -235,6 +252,39 @@ export function ParentsTab() {
     fetchParents();
   };
 
+  const handleChildDeleted = () => {
+    fetchParents();
+  };
+
+  const handleDeleteParent = async (parentId: string) => {
+    try {
+      setIsDeleting(true);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Not authenticated");
+
+      const response = await fetch(`/api/parents/${parentId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete parent");
+      }
+
+      fetchParents(); // Refresh the list
+    } catch (error) {
+      console.error("Error deleting parent:", error);
+    } finally {
+      setIsDeleting(false);
+      setDeletingParent(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -305,20 +355,75 @@ export function ParentsTab() {
                 No parents added yet
               </div>
             ) : (
-              <div className="grid gap-4">
-                {groupParentsByChildren(parents).map(({ child, parents }) => (
-                  <ChildCard
-                    key={child.id}
-                    child={child}
-                    parents={parents}
-                    onEdit={handleEditSuccess}
-                  />
-                ))}
+              <div className="space-y-8">
+                <div className="grid gap-4">
+                  {groupParentsByChildren(parents).childrenGroups.map(
+                    ({ child, parents }) => (
+                      <ChildCard
+                        key={child.id}
+                        child={child}
+                        parents={parents}
+                        onEdit={handleEditSuccess}
+                        onDelete={handleChildDeleted}
+                      />
+                    )
+                  )}
+                </div>
+
+                {groupParentsByChildren(parents).parentsWithNoChildren.length >
+                  0 && (
+                  <div className="space-y-4">
+                    <div className="border-t pt-4">
+                      <h3 className="text-lg font-semibold mb-4">
+                        Parents Without Children
+                      </h3>
+                      <div className="grid gap-4">
+                        {groupParentsByChildren(
+                          parents
+                        ).parentsWithNoChildren.map((parent) => (
+                          <ParentCard
+                            key={parent.id}
+                            parent={parent}
+                            onEdit={handleEditSuccess}
+                            onDelete={() => fetchParents()}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog
+        open={deletingParent !== null}
+        onOpenChange={(open) => !open && setDeletingParent(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this
+              parent's account from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                deletingParent && handleDeleteParent(deletingParent)
+              }
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

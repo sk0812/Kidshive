@@ -20,9 +20,27 @@ async function main() {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    // Create base user in Prisma
+    // Create user in Supabase first
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { 
+        name: 'Siddhanth Kheria',
+        phoneNumber: '+1234567890'
+      }
+    });
+
+    if (authError || !authData.user) {
+      throw authError || new Error('Failed to create Supabase user');
+    }
+
+    const supabaseUserId = authData.user.id;
+
+    // Create base user in Prisma with Supabase UUID
     const user = await prisma.user.create({
       data: {
+        id: supabaseUserId,
         email,
         password: hashedPassword,
         name: 'Siddhanth Kheria',
@@ -31,27 +49,12 @@ async function main() {
       },
     });
 
-    // Create admin record
+    // Create admin record with same UUID
     await prisma.admin.create({
       data: {
-        id: user.id,
+        id: supabaseUserId,
       },
     });
-
-    // Create user in Supabase
-    const { error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { prisma_id: user.id }
-    });
-
-    if (authError) {
-      // Rollback Prisma records if Supabase creation fails
-      await prisma.admin.delete({ where: { id: user.id } });
-      await prisma.user.delete({ where: { id: user.id } });
-      throw authError;
-    }
 
     console.log('Created admin user:', user);
   } catch (error) {

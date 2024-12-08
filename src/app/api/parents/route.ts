@@ -10,78 +10,55 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function GET(request: Request) {
   try {
-    // Verify the requesting user is authenticated
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Verify the token and get the user
-    const { data: { user: requestingUser }, error: authError } = 
-      await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
-
-    if (authError || !requestingUser?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if the requesting user has appropriate role
-    const userRecord = await prisma.user.findUnique({
-      where: { email: requestingUser.email },
-      select: { role: true }
-    });
-
-    if (!userRecord || !['ADMIN', 'ASSISTANT'].includes(userRecord.role)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    // Fetch all users who are parents with their children
-    const parents = await prisma.user.findMany({
-      where: {
-        role: 'PARENT',
-        parent: {
-          isNot: null
-        }
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phoneNumber: true,
-        parent: {
+    // Fetch parents with their children
+    const parents = await prisma.parent.findMany({
+      include: {
+        user: {
           select: {
-            relationship: true,
-            children: {
-              select: {
-                id: true,
-                name: true,
-                dob: true,
-                allergies: true,
-                specialNeeds: true
-              }
-            }
-          }
-        }
+            name: true,
+            email: true,
+            phoneNumber: true,
+          },
+        },
+        children: {
+          select: {
+            id: true,
+            name: true,
+            dob: true,
+            allergies: true,
+            healthInfo: true,
+            medications: true,
+            emergencyContact: true,
+          },
+        },
       },
-      orderBy: {
-        name: 'asc'
-      }
     });
 
-    // Transform the data to match the expected format
-    const formattedParents = parents.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      relationship: user.parent?.relationship,
-      children: user.parent?.children || []
+    // Transform the data to match the Parent type
+    const transformedParents = parents.map(parent => ({
+      id: parent.id,
+      name: parent.user.name,
+      email: parent.user.email,
+      phoneNumber: parent.user.phoneNumber,
+      relationship: parent.relationship,
+      children: parent.children,
     }));
 
-    return NextResponse.json(formattedParents);
+    // Make sure we return an array in the parents property
+    return NextResponse.json({
+      success: true,
+      parents: transformedParents
+    });
+
   } catch (error) {
-    console.error('Detailed error:', error);
+    console.error('Error fetching data:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch parents' },
+      { error: 'Internal Server Error' }, 
       { status: 500 }
     );
   } finally {
