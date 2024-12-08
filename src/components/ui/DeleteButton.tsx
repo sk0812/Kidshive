@@ -29,25 +29,13 @@ export function DeleteButton({
 
   const handleDelete = async () => {
     try {
-      console.log("DeleteButton: Starting delete process");
       setIsDeleting(true);
       await onDelete();
-      console.log("DeleteButton: Delete completed successfully");
       toast.success(`${entityType} deleted successfully`);
       setShowDialog(false);
     } catch (error) {
       console.error("DeleteButton error:", error);
-      let errorMessage = "Failed to delete";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (
-        typeof error === "object" &&
-        error !== null &&
-        "error" in error
-      ) {
-        errorMessage = String((error as { error: unknown }).error);
-      }
-      toast.error(errorMessage);
+      toast.error(error instanceof Error ? error.message : "Failed to delete");
     } finally {
       setIsDeleting(false);
     }

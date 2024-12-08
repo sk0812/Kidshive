@@ -21,6 +21,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { Parent } from "@/types";
 
 interface AddChildProps {
   onChildAdded?: () => void;

@@ -113,4 +113,37 @@ export async function PATCH(
   } finally {
     await prisma.$disconnect();
   }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const id = await params.id;
+
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Delete the child
+    await prisma.child.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error('Error deleting child:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete child' },
+      { status: 500 }
+    );
+  } finally {
+    await prisma.$disconnect();
+  }
 } 

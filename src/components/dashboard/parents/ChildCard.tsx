@@ -24,24 +24,28 @@ export function ChildCard({
   const router = useRouter();
 
   const handleDelete = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session?.access_token) throw new Error("Not authenticated");
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Not authenticated");
 
-    const response = await fetch(`/api/children/${child.id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
+      const response = await fetch(`/api/children/${child.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to delete child");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete child");
+      }
+
+      onDelete();
+    } catch (error) {
+      throw error; // Propagate the error to be handled by DeleteButton
     }
-
-    onDelete();
   };
 
   return (
