@@ -59,6 +59,7 @@ export default function ChildDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState("calendar");
   const [editingChild, setEditingChild] = useState(false);
   const [editSuccess, setEditSuccess] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -294,6 +295,22 @@ export default function ChildDetailsPage() {
                 Born: {new Date(child.dob).toLocaleDateString("en-GB")}
               </div>
             </div>
+            <div className="flex flex-col space-y-2">
+              <Button
+                variant={activeTab === "calendar" ? "default" : "outline"}
+                onClick={() => setActiveTab("calendar")}
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                Calendar
+              </Button>
+              <Button
+                variant={activeTab === "consent-forms" ? "default" : "outline"}
+                onClick={() => setActiveTab("consent-forms")}
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Consent Forms
+              </Button>
+            </div>
 
             <Separator />
 
@@ -391,19 +408,37 @@ export default function ChildDetailsPage() {
 
       {/* Main Content */}
       <div className="flex-1 p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Content Area</CardTitle>
-            <CardDescription>
-              This space is reserved for future content
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[700px] flex items-center justify-center text-muted-foreground">
-              Content coming soon...
-            </div>
-          </CardContent>
-        </Card>
+        {activeTab === "calendar" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Calendar</CardTitle>
+              <CardDescription>
+                This is where the calendar content will go.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[700px] flex items-center justify-center text-muted-foreground">
+                Calendar content coming soon...
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === "consent-forms" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Consent Forms</CardTitle>
+              <CardDescription>
+                This is where the consent forms content will go.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[700px] flex items-center justify-center text-muted-foreground">
+                Consent forms content coming soon...
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
