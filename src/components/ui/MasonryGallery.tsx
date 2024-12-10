@@ -4,36 +4,36 @@ import Image from "next/image";
 
 const masonryImages = [
   {
-    src: "https://images.pexels.com/photos/207891/pexels-photo-207891.jpeg",
+    src: "/image-1.jpeg",
     alt: "Child drawing",
     className: "row-span-2 col-span-2",
   },
   {
-    src: "https://images.pexels.com/photos/1001914/pexels-photo-1001914.jpeg",
+    src: "/image-2.jpeg",
     alt: "Children playing with blocks",
     className: "col-span-2",
   },
   {
-    src: "https://images.pexels.com/photos/296301/pexels-photo-296301.jpeg",
+    src: "/image-3.jpeg",
     alt: "Outdoor activities",
     className: "row-span-2",
   },
   {
-    src: "https://images.pexels.com/photos/1148998/pexels-photo-1148998.jpeg",
+    src: "/image-4.jpeg",
     alt: "Reading time",
   },
   {
-    src: "https://images.pexels.com/photos/8612930/pexels-photo-8612930.jpeg",
+    src: "/image-5.jpeg",
     alt: "Arts and crafts",
     className: "row-span-2",
   },
   {
-    src: "https://images.pexels.com/photos/8613167/pexels-photo-8613167.jpeg",
+    src: "/image-6.jpeg",
     alt: "Learning together",
     className: "col-span-2",
   },
   {
-    src: "https://images.pexels.com/photos/8613167/pexels-photo-8613167.jpeg",
+    src: "/image-7.jpeg",
     alt: "Music and movement",
   },
 ];
