@@ -2,6 +2,7 @@
 
 import { GalleryCarousel } from "@/components/ui/GalleryCarousel";
 import { MasonryGallery } from "@/components/ui/MasonryGallery";
+import Image from "next/image";
 
 export default function Gallery() {
   return (

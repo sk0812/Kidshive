@@ -14,14 +14,16 @@ export function ServicesCard({
   className,
 }: ServicesCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-lg bg-white p-6 shadow-md transition-all hover:shadow-lg">
-      <div className="flex items-center gap-4">
-        <div className="rounded-full bg-primary/10 p-3">
-          <Icon className="h-6 w-6 text-primary" />
+    <div className="group relative overflow-hidden rounded-lg bg-white p-5 md:p-6 lg:p-8 shadow-md transition-all hover:shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4">
+        <div className="rounded-full bg-primary/10 p-2 md:p-3 w-fit">
+          <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />
         </div>
-        <h3 className="font-semibold">{title}</h3>
+        <h3 className="text-lg md:text-xl font-semibold">{title}</h3>
       </div>
-      <p className="mt-3 text-muted-foreground">{description}</p>
+      <p className="mt-3 md:mt-4 text-sm md:text-base text-muted-foreground leading-relaxed">
+        {description}
+      </p>
     </div>
   );
 }

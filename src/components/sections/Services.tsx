@@ -14,7 +14,7 @@ const services = [
   {
     title: "Early Learning Programs",
     description:
-      "Age-appropriate educational activities fostering cognitive development and curiosity",
+      "Age-appropriate activities fostering cognitive development and curiosity",
     icon: Brain,
   },
   {
@@ -51,7 +51,7 @@ const services = [
 
 export default function Services() {
   return (
-    <section id="about" className="py-24 bg-slate-50">
+    <section className="py-24 bg-slate-50">
       <div className="container px-4 md:px-6">
         <div className="text-center space-y-3 mb-16">
           <h2 className="text-3xl font-bold">Our Services</h2>
