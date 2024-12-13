@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "sonner";
 import BackToTop from "@/components/ui/BackToTop";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -36,6 +37,7 @@ export default function RootLayout({
         className={`${poppins.variable} min-h-screen flex flex-col font-sans antialiased`}
       >
         <SpeedInsights />
+        <Analytics />
         <AuthProvider>
           <Navbar />
           <main className="pt-16 flex-grow">{children}</main>
