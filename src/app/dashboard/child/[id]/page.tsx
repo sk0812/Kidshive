@@ -9,7 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/CardUI";
 import { Separator } from "@/components/ui/separator";
 import {
   Calendar,

@@ -8,14 +8,19 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Update the type definition for context
+type Context = {
+  params: Promise<{ id: string }>
+}
+
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: Context
 ) {
   try {
-    // Ensure params is resolved
-    const { id } = await params;
-
+    // Await the params
+    const { id } = await context.params;
+    
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
       return NextResponse.json(
@@ -63,11 +68,11 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: Context
 ) {
   try {
-    // Ensure params is resolved
-    const { id } = await params;
+    // Await the params
+    const { id } = await context.params;
     
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {
@@ -119,11 +124,11 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  context: Context
 ) {
   try {
-    // Ensure params is resolved
-    const { id } = await params;
+    // Await the params
+    const { id } = await context.params;
     
     const authHeader = request.headers.get('authorization');
     if (!authHeader) {

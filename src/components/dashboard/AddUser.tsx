@@ -8,7 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/CardUI";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -20,14 +20,14 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase";
 
-interface AddUserProps {
-  defaultRole: "ADMIN" | "ASSISTANT" | "PARENT";
-  onUserAdded: (userId: string) => void;
+export interface AddUserProps {
+  defaultRole: string;
+  onUserAdded: () => void;
 }
 
 type Relationship = "MOTHER" | "FATHER" | "GUARDIAN";
 
-export function AddUser({ onUserAdded, defaultRole }: AddUserProps) {
+export function AddUser({ defaultRole, onUserAdded }: AddUserProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -84,7 +84,7 @@ export function AddUser({ onUserAdded, defaultRole }: AddUserProps) {
         relationship: "",
       });
 
-      onUserAdded(result.user.id);
+      onUserAdded();
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Failed to create user"

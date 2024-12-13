@@ -2,7 +2,7 @@
 
 import { ContactForm } from "@/components/ui/ContactForm";
 import { ContactInfo } from "@/components/ui/ContactInfo";
-import { Map } from "@/components/ui/Map";
+import { Map } from "@/components/ui/MapUI";
 
 export default function Contact() {
   return (

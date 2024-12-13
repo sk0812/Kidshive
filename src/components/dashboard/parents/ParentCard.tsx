@@ -1,5 +1,5 @@
 import { Parent } from "@/types";
-import { Card } from "@/components/ui/card";
+import { Card } from "@/components/ui/CardUI";
 import { DeleteButton } from "@/components/ui/DeleteButton";
 import { supabase } from "@/lib/supabase";
 
