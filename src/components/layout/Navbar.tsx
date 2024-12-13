@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,7 +12,6 @@ const navigation = [
   { name: "About", href: "#about" },
   { name: "Testimonials", href: "#testimonials" },
   { name: "Contact", href: "#contact" },
-  { name: "Blog", href: "/blog" },
 ];
 
 export default function Navbar() {
@@ -24,8 +24,14 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="text-xl font-bold text-primary">
-              Kidshive
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/logo.png"
+                alt="Kidshive Logo"
+                width={120}
+                height={40}
+                priority
+              />
             </Link>
           </div>
 
