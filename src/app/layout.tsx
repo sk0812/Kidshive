@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Navbar from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "sonner";
+import BackToTop from "@/components/ui/BackToTop";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -39,6 +40,7 @@ export default function RootLayout({
           <Footer />
         </AuthProvider>
         <Toaster />
+        <BackToTop />
       </body>
     </html>
   );
