@@ -76,16 +76,23 @@ enum Relationship {
   GUARDIAN
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HOLIDAY
+}
+
 model Attendance {
-  id           String        @id @default(cuid())
+  id           String           @id @default(cuid())
   childId      String
   date         DateTime
+  status       AttendanceStatus @default(PRESENT)
   checkIn      DateTime?
   checkOut     DateTime?
   notes        String?
-  child        Child         @relation(fields: [childId], references: [id])
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  child        Child            @relation(fields: [childId], references: [id])
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   meals        Meal[]
   naps         Nap[]
   nappyChanges NappyChange[]

@@ -27,10 +27,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DailyRecordPopup } from "./DailyRecordPopup";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { AttendanceStatus } from "./types";
 
 interface Attendance {
   id: string;
   date: string;
+  status: AttendanceStatus;
   checkIn: string | null;
   checkOut: string | null;
   notes: string | null;
@@ -226,22 +228,33 @@ export function WeeklyCalendar({ childId }: WeeklyCalendarProps) {
                           dayIndex < 4 && "border-r",
                           !isCurrentMonth &&
                             "text-muted-foreground bg-muted/10",
+                          attendance?.status === "ABSENT" &&
+                            "text-red-500 font-semibold",
+                          attendance?.status === "HOLIDAY" &&
+                            "text-blue-500 font-semibold",
                           "w-[160px]"
                         )}
                         colSpan={2}
                         onClick={() => isCurrentMonth && handleDateClick(date)}
                       >
-                        <div className="flex justify-center items-center h-full">
-                          <div className="flex-1 text-center">
-                            {attendance?.checkIn &&
-                              format(new Date(attendance.checkIn), "HH:mm")}
+                        {!attendance?.status ||
+                        attendance?.status === "PRESENT" ? (
+                          <div className="flex justify-center items-center h-full">
+                            <div className="flex-1 text-center">
+                              {attendance?.checkIn &&
+                                format(new Date(attendance.checkIn), "HH:mm")}
+                            </div>
+                            <div className="w-px h-full bg-border absolute left-1/2" />
+                            <div className="flex-1 text-center">
+                              {attendance?.checkOut &&
+                                format(new Date(attendance.checkOut), "HH:mm")}
+                            </div>
                           </div>
-                          <div className="w-px h-full bg-border absolute left-1/2" />
-                          <div className="flex-1 text-center">
-                            {attendance?.checkOut &&
-                              format(new Date(attendance.checkOut), "HH:mm")}
+                        ) : (
+                          <div className="flex justify-center items-center h-full">
+                            {attendance.status}
                           </div>
-                        </div>
+                        )}
                       </TableCell>
                     );
                   })}
