@@ -89,6 +89,7 @@ export function AddChild({ onChildAdded }: AddChildProps) {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+
       if (!session?.access_token) {
         throw new Error("Not authenticated");
       }

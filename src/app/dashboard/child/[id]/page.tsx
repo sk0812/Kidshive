@@ -419,7 +419,7 @@ export default function ChildDetailsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <WeeklyCalendar />
+              <WeeklyCalendar childId={params.id as string} />
             </CardContent>
           </Card>
         )}
