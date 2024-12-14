@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section id="home" className="relative h-[calc(100vh-4rem)] min-h-[600px]">
+    <section id="home" className="relative h-[calc(100vh-5rem)] min-h-[600px]">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image

@@ -40,7 +40,7 @@ export default function RootLayout({
         <Analytics />
         <AuthProvider>
           <Navbar />
-          <main className="pt-16 flex-grow">{children}</main>
+          <main className="pt-20 flex-grow">{children}</main>
           <Footer />
         </AuthProvider>
         <Toaster />

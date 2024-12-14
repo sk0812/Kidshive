@@ -19,17 +19,17 @@ export default function Navbar() {
   const { user } = useAuth();
 
   return (
-    <nav className="fixed top-0 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 border-b">
+    <nav className="fixed w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
+        <div className="flex h-20 items-center justify-between">
+          {/* Logo - increased width and height */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <Image
                 src="/logo.png"
                 alt="Kidshive Logo"
-                width={120}
-                height={40}
+                width={160}
+                height={53}
                 priority
               />
             </Link>
@@ -41,7 +41,7 @@ export default function Navbar() {
               <a
                 key={item.name}
                 href={item.href}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                className="text-base font-medium text-muted-foreground hover:text-primary transition-colors"
               >
                 {item.name}
               </a>
@@ -85,7 +85,7 @@ export default function Navbar() {
                 <a
                   key={item.name}
                   href={item.href}
-                  className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-primary transition-colors"
+                  className="block px-3 py-2 text-lg font-medium text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}
@@ -94,7 +94,7 @@ export default function Navbar() {
               {!user ? (
                 <Link
                   href="/signin"
-                  className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-primary transition-colors"
+                  className="block px-3 py-2 text-lg font-medium text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   Sign in
@@ -102,7 +102,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/dashboard"
-                  className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-primary transition-colors"
+                  className="block px-3 py-2 text-lg font-medium text-muted-foreground hover:text-primary transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   Dashboard
