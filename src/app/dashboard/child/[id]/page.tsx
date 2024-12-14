@@ -35,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { WeeklyCalendar } from "@/components/dashboard/calendar/WeeklyCalendar";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ChildDetails {
   id: string;
@@ -72,6 +73,7 @@ export default function ChildDetailsPage() {
     medications: "",
     emergencyContact: "",
   });
+  const { user } = useAuth();
 
   const fetchChildDetails = async () => {
     try {
@@ -161,136 +163,138 @@ export default function ChildDetailsPage() {
               onClick={() => router.back()}
             >
               <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to Parents
+              Back to Dashboard
             </Button>
 
             <div className="space-y-2">
               <div className="flex justify-between items-start">
                 <h2 className="text-2xl font-bold">{child.name}</h2>
-                <Dialog
-                  open={editingChild}
-                  onOpenChange={(open) => {
-                    if (open) {
-                      setEditFormData({
-                        name: child.name,
-                        dob: new Date(child.dob).toISOString().split("T")[0],
-                        allergies: child.allergies || "",
-                        healthInfo: child.healthInfo || "",
-                        medications: child.medications || "",
-                        emergencyContact: child.emergencyContact || "",
-                      });
-                    }
-                    setEditingChild(open);
-                  }}
-                >
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit Child
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogTitle>Edit Child Details</DialogTitle>
-                    <form onSubmit={handleEditChild} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Name</Label>
-                        <Input
-                          id="name"
-                          name="name"
-                          value={editFormData.name}
-                          onChange={(e) =>
-                            setEditFormData({
-                              ...editFormData,
-                              name: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="dob">Date of Birth</Label>
-                        <Input
-                          id="dob"
-                          name="dob"
-                          type="date"
-                          value={editFormData.dob}
-                          onChange={(e) =>
-                            setEditFormData({
-                              ...editFormData,
-                              dob: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="allergies">Allergies</Label>
-                        <Input
-                          id="allergies"
-                          name="allergies"
-                          value={editFormData.allergies}
-                          onChange={(e) =>
-                            setEditFormData({
-                              ...editFormData,
-                              allergies: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="healthInfo">Health Information</Label>
-                        <Input
-                          id="healthInfo"
-                          name="healthInfo"
-                          value={editFormData.healthInfo}
-                          onChange={(e) =>
-                            setEditFormData({
-                              ...editFormData,
-                              healthInfo: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="medications">Medications</Label>
-                        <Input
-                          id="medications"
-                          name="medications"
-                          value={editFormData.medications}
-                          onChange={(e) =>
-                            setEditFormData({
-                              ...editFormData,
-                              medications: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="emergencyContact">
-                          Emergency Contact
-                        </Label>
-                        <Input
-                          id="emergencyContact"
-                          name="emergencyContact"
-                          value={editFormData.emergencyContact}
-                          onChange={(e) =>
-                            setEditFormData({
-                              ...editFormData,
-                              emergencyContact: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      {editSuccess && (
-                        <div className="text-sm text-green-500">
-                          Child details updated successfully!
-                        </div>
-                      )}
-                      <Button type="submit" className="w-full">
-                        Save Changes
+                {user?.role !== "PARENT" && (
+                  <Dialog
+                    open={editingChild}
+                    onOpenChange={(open) => {
+                      if (open) {
+                        setEditFormData({
+                          name: child.name,
+                          dob: new Date(child.dob).toISOString().split("T")[0],
+                          allergies: child.allergies || "",
+                          healthInfo: child.healthInfo || "",
+                          medications: child.medications || "",
+                          emergencyContact: child.emergencyContact || "",
+                        });
+                      }
+                      setEditingChild(open);
+                    }}
+                  >
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Child
                       </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogTitle>Edit Child Details</DialogTitle>
+                      <form onSubmit={handleEditChild} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Name</Label>
+                          <Input
+                            id="name"
+                            name="name"
+                            value={editFormData.name}
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="dob">Date of Birth</Label>
+                          <Input
+                            id="dob"
+                            name="dob"
+                            type="date"
+                            value={editFormData.dob}
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                dob: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="allergies">Allergies</Label>
+                          <Input
+                            id="allergies"
+                            name="allergies"
+                            value={editFormData.allergies}
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                allergies: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="healthInfo">Health Information</Label>
+                          <Input
+                            id="healthInfo"
+                            name="healthInfo"
+                            value={editFormData.healthInfo}
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                healthInfo: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="medications">Medications</Label>
+                          <Input
+                            id="medications"
+                            name="medications"
+                            value={editFormData.medications}
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                medications: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="emergencyContact">
+                            Emergency Contact
+                          </Label>
+                          <Input
+                            id="emergencyContact"
+                            name="emergencyContact"
+                            value={editFormData.emergencyContact}
+                            onChange={(e) =>
+                              setEditFormData({
+                                ...editFormData,
+                                emergencyContact: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        {editSuccess && (
+                          <div className="text-sm text-green-500">
+                            Child details updated successfully!
+                          </div>
+                        )}
+                        <Button type="submit" className="w-full">
+                          Save Changes
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Calendar className="mr-2 h-4 w-4" />
@@ -419,7 +423,10 @@ export default function ChildDetailsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <WeeklyCalendar childId={params.id as string} />
+              <WeeklyCalendar
+                childId={params.id as string}
+                readOnly={user?.role === "PARENT"}
+              />
             </CardContent>
           </Card>
         )}

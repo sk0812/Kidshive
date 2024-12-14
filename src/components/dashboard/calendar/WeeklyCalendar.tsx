@@ -40,9 +40,13 @@ interface Attendance {
 
 interface WeeklyCalendarProps {
   childId: string;
+  readOnly?: boolean;
 }
 
-export function WeeklyCalendar({ childId }: WeeklyCalendarProps) {
+export function WeeklyCalendar({
+  childId,
+  readOnly = false,
+}: WeeklyCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -270,6 +274,7 @@ export function WeeklyCalendar({ childId }: WeeklyCalendarProps) {
         isOpen={isPopupOpen}
         onClose={() => setIsPopupOpen(false)}
         onSave={fetchMonthlyAttendance}
+        readOnly={readOnly}
       />
     </div>
   );

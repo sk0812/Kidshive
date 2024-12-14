@@ -15,7 +15,18 @@ import { SettingsTab } from "../../components/dashboard/tabs/SettingsTab";
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("parents");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (user?.role === "PARENT") {
+      return "children";
+    }
+    return "parents";
+  });
+
+  useEffect(() => {
+    if (user?.role === "PARENT") {
+      setActiveTab("children");
+    }
+  }, [user?.role]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -32,7 +43,7 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="flex items-center justify-center py-8">
         <SignIn />
       </div>
     );
@@ -49,6 +60,11 @@ export default function DashboardPage() {
       case "settings":
         return <SettingsTab />;
       default:
+        if (activeTab.startsWith("child-")) {
+          const childId = activeTab.replace("child-", "");
+          router.push(`/dashboard/child/${childId}`);
+          return null;
+        }
         return null;
     }
   };

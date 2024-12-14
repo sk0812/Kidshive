@@ -23,13 +23,15 @@ import {
 } from "@/components/ui/select";
 import { AttendanceStatus } from "./types";
 import { cn } from "@/lib/utils";
+import { DailyRecord } from "./types";
 
 interface DailyRecordPopupProps {
   childId: string;
   date: Date | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onSave: () => Promise<void>;
+  readOnly?: boolean;
 }
 
 export function DailyRecordPopup({
@@ -38,6 +40,7 @@ export function DailyRecordPopup({
   isOpen,
   onClose,
   onSave,
+  readOnly = false,
 }: DailyRecordPopupProps) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -151,7 +154,7 @@ export function DailyRecordPopup({
     };
 
     fetchAttendance();
-  }, [childId, date, isOpen]);
+  }, [date, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,276 +234,400 @@ export function DailyRecordPopup({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="py-4">
-          {/* Status Selection */}
-          <div className="flex justify-between items-center bg-muted/30 p-4 rounded-lg mb-8">
-            <h3 className="font-semibold text-lg">Attendance Status</h3>
-            <Select
-              value={status}
-              onValueChange={(value: AttendanceStatus) => setStatus(value)}
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="PRESENT">Present</SelectItem>
-                <SelectItem value="ABSENT">Absent</SelectItem>
-                <SelectItem value="HOLIDAY">Holiday</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div
-            className={cn(
-              "grid grid-cols-2 gap-8",
-              status !== "PRESENT" && "opacity-50 pointer-events-none"
-            )}
-          >
-            {/* Left Column */}
-            <div className="space-y-8">
-              {/* Attendance Section */}
-              <div className="bg-card p-6 rounded-lg border shadow-sm">
-                <h3 className="font-semibold text-lg mb-4">
-                  Check In/Out Times
-                </h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="checkIn" className="text-sm font-medium">
-                      Check In Time
-                    </Label>
-                    <Input
-                      id="checkIn"
-                      type="time"
-                      value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
-                      className="w-full"
-                    />
+        <div className="space-y-4">
+          {/* Render form fields as read-only text when readOnly is true */}
+          {readOnly ? (
+            // Read-only view
+            <div className="grid grid-cols-2 gap-8">
+              {/* Left Column */}
+              <div className="space-y-8">
+                {/* Attendance Section */}
+                <div className="bg-card p-6 rounded-lg border shadow-sm">
+                  <h3 className="font-semibold text-lg mb-4">
+                    Check In/Out Times
+                  </h3>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <Label>Check In Time</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {checkIn || "Not recorded"}
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Check Out Time</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {checkOut || "Not recorded"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="checkOut" className="text-sm font-medium">
-                      Check Out Time
-                    </Label>
-                    <Input
-                      id="checkOut"
-                      type="time"
-                      value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      className="w-full"
-                    />
+                </div>
+
+                {/* Meals Section */}
+                <div className="bg-card p-6 rounded-lg border shadow-sm">
+                  <h3 className="font-semibold text-lg mb-4">Meals</h3>
+                  <div className="space-y-6">
+                    {Object.entries(meals).map(([type, meal]) => (
+                      <div key={type} className="pb-4 border-b last:border-0">
+                        <Label>
+                          {type.charAt(0) + type.slice(1).toLowerCase()}
+                        </Label>
+                        <div className="grid grid-cols-2 gap-4 mt-1">
+                          <p className="text-sm text-muted-foreground">
+                            Food: {meal.food || "Not recorded"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Quantity: {meal.quantity || "Not recorded"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Meals Section */}
-              <div className="bg-card p-6 rounded-lg border shadow-sm">
-                <h3 className="font-semibold text-lg mb-4">Meals</h3>
-                <div className="space-y-6">
-                  {Object.entries(meals).map(([type, meal]) => (
-                    <div
-                      key={type}
-                      className="grid grid-cols-2 gap-6 pb-4 border-b last:border-0 last:pb-0"
-                    >
+              {/* Right Column */}
+              <div className="space-y-8">
+                {/* Nap Times Section */}
+                <div className="bg-card p-6 rounded-lg border shadow-sm">
+                  <h3 className="font-semibold text-lg mb-4">Nap Times</h3>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <Label>Start Time</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {nap.startTime || "Not recorded"}
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Finish Time</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {nap.finishTime || "Not recorded"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Nappy Changes Section */}
+                <div className="bg-card p-6 rounded-lg border shadow-sm">
+                  <h3 className="font-semibold text-lg mb-4">Nappy Changes</h3>
+                  <div className="space-y-4">
+                    {nappyChanges.map((change, index) => (
+                      <div key={index} className="pb-4 border-b last:border-0">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>Time</Label>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {change.time || "Not recorded"}
+                            </p>
+                          </div>
+                          <div>
+                            <Label>Notes</Label>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {change.notes || "No notes"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Notes Section */}
+                <div className="bg-card p-6 rounded-lg border shadow-sm">
+                  <h3 className="font-semibold text-lg mb-4">
+                    Additional Notes
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {notes || "No additional notes"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Editable form
+            <form onSubmit={handleSubmit} className="py-4">
+              {/* Status Selection */}
+              <div className="flex justify-between items-center bg-muted/30 p-4 rounded-lg mb-8">
+                <h3 className="font-semibold text-lg">Attendance Status</h3>
+                <Select
+                  value={status}
+                  onValueChange={(value: AttendanceStatus) => setStatus(value)}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PRESENT">Present</SelectItem>
+                    <SelectItem value="ABSENT">Absent</SelectItem>
+                    <SelectItem value="HOLIDAY">Holiday</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div
+                className={cn(
+                  "grid grid-cols-2 gap-8",
+                  status !== "PRESENT" && "opacity-50 pointer-events-none"
+                )}
+              >
+                {/* Left Column */}
+                <div className="space-y-8">
+                  {/* Attendance Section */}
+                  <div className="bg-card p-6 rounded-lg border shadow-sm">
+                    <h3 className="font-semibold text-lg mb-4">
+                      Check In/Out Times
+                    </h3>
+                    <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label
-                          htmlFor={`${type.toLowerCase()}-food`}
+                          htmlFor="checkIn"
                           className="text-sm font-medium"
                         >
-                          {type.charAt(0) + type.slice(1).toLowerCase()}
+                          Check In Time
                         </Label>
                         <Input
-                          id={`${type.toLowerCase()}-food`}
-                          value={meal.food}
-                          onChange={(e) =>
-                            setMeals({
-                              ...meals,
-                              [type]: { ...meal, food: e.target.value },
-                            })
-                          }
-                          placeholder="Enter food eaten"
+                          id="checkIn"
+                          type="time"
+                          value={checkIn}
+                          onChange={(e) => setCheckIn(e.target.value)}
                           className="w-full"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label
-                          htmlFor={`${type.toLowerCase()}-quantity`}
+                          htmlFor="checkOut"
                           className="text-sm font-medium"
                         >
-                          Quantity
-                        </Label>
-                        <Select
-                          value={meal.quantity}
-                          onValueChange={(value) =>
-                            setMeals({
-                              ...meals,
-                              [type]: { ...meal, quantity: value },
-                            })
-                          }
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select quantity" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="GOOD">Good</SelectItem>
-                            <SelectItem value="AVERAGE">Average</SelectItem>
-                            <SelectItem value="BELOW_AVERAGE">
-                              Below Average
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="space-y-8">
-              {/* Nap Times Section */}
-              <div className="bg-card p-6 rounded-lg border shadow-sm">
-                <h3 className="font-semibold text-lg mb-4">Nap Times</h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="napStart" className="text-sm font-medium">
-                      Start Time
-                    </Label>
-                    <Input
-                      id="napStart"
-                      type="time"
-                      value={nap.startTime}
-                      onChange={(e) =>
-                        setNap({ ...nap, startTime: e.target.value })
-                      }
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="napFinish" className="text-sm font-medium">
-                      Finish Time
-                    </Label>
-                    <Input
-                      id="napFinish"
-                      type="time"
-                      value={nap.finishTime}
-                      onChange={(e) =>
-                        setNap({ ...nap, finishTime: e.target.value })
-                      }
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Nappy Changes Section */}
-              <div className="bg-card p-6 rounded-lg border shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold text-lg">Nappy Changes</h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setNappyChanges([
-                        ...nappyChanges,
-                        { time: "", notes: "" },
-                      ])
-                    }
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Change
-                  </Button>
-                </div>
-                <div className="space-y-4">
-                  {nappyChanges.map((change, index) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-[1fr,2fr,auto] gap-4 items-end pb-4 border-b last:border-0 last:pb-0"
-                    >
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor={`nappy-time-${index}`}
-                          className="text-sm font-medium"
-                        >
-                          Time
+                          Check Out Time
                         </Label>
                         <Input
-                          id={`nappy-time-${index}`}
+                          id="checkOut"
                           type="time"
-                          value={change.time || ""}
-                          onChange={(e) => {
-                            const newChanges = [...nappyChanges];
-                            newChanges[index].time = e.target.value;
-                            setNappyChanges(newChanges);
-                          }}
+                          value={checkOut}
+                          onChange={(e) => setCheckOut(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Meals Section */}
+                  <div className="bg-card p-6 rounded-lg border shadow-sm">
+                    <h3 className="font-semibold text-lg mb-4">Meals</h3>
+                    <div className="space-y-6">
+                      {Object.entries(meals).map(([type, meal]) => (
+                        <div
+                          key={type}
+                          className="grid grid-cols-2 gap-6 pb-4 border-b last:border-0 last:pb-0"
+                        >
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor={`${type.toLowerCase()}-food`}
+                              className="text-sm font-medium"
+                            >
+                              {type.charAt(0) + type.slice(1).toLowerCase()}
+                            </Label>
+                            <Input
+                              id={`${type.toLowerCase()}-food`}
+                              value={meal.food}
+                              onChange={(e) =>
+                                setMeals({
+                                  ...meals,
+                                  [type]: { ...meal, food: e.target.value },
+                                })
+                              }
+                              placeholder="Enter food eaten"
+                              className="w-full"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor={`${type.toLowerCase()}-quantity`}
+                              className="text-sm font-medium"
+                            >
+                              Quantity
+                            </Label>
+                            <Select
+                              value={meal.quantity}
+                              onValueChange={(value) =>
+                                setMeals({
+                                  ...meals,
+                                  [type]: { ...meal, quantity: value },
+                                })
+                              }
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select quantity" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="GOOD">Good</SelectItem>
+                                <SelectItem value="AVERAGE">Average</SelectItem>
+                                <SelectItem value="BELOW_AVERAGE">
+                                  Below Average
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-8">
+                  {/* Nap Times Section */}
+                  <div className="bg-card p-6 rounded-lg border shadow-sm">
+                    <h3 className="font-semibold text-lg mb-4">Nap Times</h3>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="napStart"
+                          className="text-sm font-medium"
+                        >
+                          Start Time
+                        </Label>
+                        <Input
+                          id="napStart"
+                          type="time"
+                          value={nap.startTime}
+                          onChange={(e) =>
+                            setNap({ ...nap, startTime: e.target.value })
+                          }
+                          className="w-full"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label
-                          htmlFor={`nappy-notes-${index}`}
+                          htmlFor="napFinish"
                           className="text-sm font-medium"
                         >
-                          Notes
+                          Finish Time
                         </Label>
                         <Input
-                          id={`nappy-notes-${index}`}
-                          value={change.notes || ""}
-                          onChange={(e) => {
-                            const newChanges = [...nappyChanges];
-                            newChanges[index].notes = e.target.value;
-                            setNappyChanges(newChanges);
-                          }}
+                          id="napFinish"
+                          type="time"
+                          value={nap.finishTime}
+                          onChange={(e) =>
+                            setNap({ ...nap, finishTime: e.target.value })
+                          }
+                          className="w-full"
                         />
                       </div>
-                      {index > 0 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            const newChanges = nappyChanges.filter(
-                              (_, i) => i !== index
-                            );
-                            setNappyChanges(newChanges);
-                          }}
-                        >
-                          <Trash className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Nappy Changes Section */}
+                  <div className="bg-card p-6 rounded-lg border shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-semibold text-lg">Nappy Changes</h3>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setNappyChanges([
+                            ...nappyChanges,
+                            { time: "", notes: "" },
+                          ])
+                        }
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Change
+                      </Button>
+                    </div>
+                    <div className="space-y-4">
+                      {nappyChanges.map((change, index) => (
+                        <div
+                          key={index}
+                          className="grid grid-cols-[1fr,2fr,auto] gap-4 items-end pb-4 border-b last:border-0 last:pb-0"
+                        >
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor={`nappy-time-${index}`}
+                              className="text-sm font-medium"
+                            >
+                              Time
+                            </Label>
+                            <Input
+                              id={`nappy-time-${index}`}
+                              type="time"
+                              value={change.time || ""}
+                              onChange={(e) => {
+                                const newChanges = [...nappyChanges];
+                                newChanges[index].time = e.target.value;
+                                setNappyChanges(newChanges);
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label
+                              htmlFor={`nappy-notes-${index}`}
+                              className="text-sm font-medium"
+                            >
+                              Notes
+                            </Label>
+                            <Input
+                              id={`nappy-notes-${index}`}
+                              value={change.notes || ""}
+                              onChange={(e) => {
+                                const newChanges = [...nappyChanges];
+                                newChanges[index].notes = e.target.value;
+                                setNappyChanges(newChanges);
+                              }}
+                            />
+                          </div>
+                          {index > 0 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const newChanges = nappyChanges.filter(
+                                  (_, i) => i !== index
+                                );
+                                setNappyChanges(newChanges);
+                              }}
+                            >
+                              <Trash className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Notes Section */}
+                  <div className="bg-card p-6 rounded-lg border shadow-sm">
+                    <div className="space-y-2">
+                      <Label htmlFor="notes" className="text-sm font-medium">
+                        Additional Notes
+                      </Label>
+                      <Textarea
+                        id="notes"
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Add any notes about today..."
+                        className="min-h-[100px]"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Notes Section */}
-              <div className="bg-card p-6 rounded-lg border shadow-sm">
-                <div className="space-y-2">
-                  <Label htmlFor="notes" className="text-sm font-medium">
-                    Additional Notes
-                  </Label>
-                  <Textarea
-                    id="notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Add any notes about today..."
-                    className="min-h-[100px]"
-                  />
+              {error && (
+                <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md mt-8">
+                  {error}
                 </div>
-              </div>
-            </div>
-          </div>
+              )}
 
-          {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md mt-8">
-              {error}
-            </div>
+              <div className="flex justify-end pt-4 mt-4 border-t">
+                <Button type="submit" className="w-[200px]" disabled={loading}>
+                  {loading ? "Saving..." : "Save Record"}
+                </Button>
+              </div>
+            </form>
           )}
-
-          <div className="flex justify-end pt-4 mt-4 border-t">
-            <Button type="submit" className="w-[200px]" disabled={loading}>
-              {loading ? "Saving..." : "Save Record"}
-            </Button>
-          </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
