@@ -35,7 +35,9 @@ export default function SignIn() {
       if (error) {
         setError(error.message);
       } else if (data?.session) {
-        window.location.href = "/dashboard";
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch (err) {
       setError("An unexpected error occurred");

@@ -17,15 +17,9 @@ export default function DashboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("parents");
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/");
-    }
-  }, [user, loading, router]);
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/dashboard");
+    router.push("/");
   };
 
   if (loading) {

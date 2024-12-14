@@ -7,17 +7,10 @@ export async function middleware(req: NextRequest) {
   
   try {
     const supabase = createMiddlewareClient({ req, res })
-    const { data: { session }, error } = await supabase.auth.getSession()
     
-    console.log('Middleware path:', req.nextUrl.pathname)
-    console.log('Session exists:', !!session)
-    if (error) console.error('Session error:', error)
-
-    if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
-      console.log('Redirecting to home: No session found')
-      return NextResponse.redirect(new URL('/', req.url))
-    }
-
+    // Only refresh the session
+    await supabase.auth.getSession()
+    
     return res
   } catch (e) {
     console.error('Middleware error:', e)
@@ -25,10 +18,6 @@ export async function middleware(req: NextRequest) {
   }
 }
 
-// Update matcher to only run on specific routes
 export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/dashboard/:path*']
 } 
