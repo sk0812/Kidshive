@@ -124,8 +124,10 @@ export function WeeklyCalendar({ childId }: WeeklyCalendarProps) {
   };
 
   const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
-    setIsPopupOpen(true);
+    if (isSameMonth(date, currentDate)) {
+      setSelectedDate(date);
+      setIsPopupOpen(true);
+    }
   };
 
   return (
@@ -217,35 +219,30 @@ export function WeeklyCalendar({ childId }: WeeklyCalendarProps) {
                     const isCurrentMonth = isSameMonth(date, currentDate);
 
                     return (
-                      <React.Fragment key={date.toString()}>
-                        <TableCell
-                          className={cn(
-                            "text-center cursor-pointer hover:bg-muted/50 border-r h-12",
-                            !isCurrentMonth && "text-muted-foreground/50",
-                            "w-[80px]"
-                          )}
-                          onClick={() =>
-                            isCurrentMonth && handleDateClick(date)
-                          }
-                        >
-                          {attendance?.checkIn &&
-                            format(new Date(attendance.checkIn), "HH:mm")}
-                        </TableCell>
-                        <TableCell
-                          className={cn(
-                            "text-center cursor-pointer hover:bg-muted/50 h-12",
-                            dayIndex < 4 && "border-r",
-                            !isCurrentMonth && "text-muted-foreground/50",
-                            "w-[80px]"
-                          )}
-                          onClick={() =>
-                            isCurrentMonth && handleDateClick(date)
-                          }
-                        >
-                          {attendance?.checkOut &&
-                            format(new Date(attendance.checkOut), "HH:mm")}
-                        </TableCell>
-                      </React.Fragment>
+                      <TableCell
+                        key={date.toString()}
+                        className={cn(
+                          "relative text-center cursor-pointer hover:bg-muted/50 h-12 p-4 align-middle",
+                          dayIndex < 4 && "border-r",
+                          !isCurrentMonth &&
+                            "text-muted-foreground bg-muted/10",
+                          "w-[160px]"
+                        )}
+                        colSpan={2}
+                        onClick={() => isCurrentMonth && handleDateClick(date)}
+                      >
+                        <div className="flex justify-center items-center h-full">
+                          <div className="flex-1 text-center">
+                            {attendance?.checkIn &&
+                              format(new Date(attendance.checkIn), "HH:mm")}
+                          </div>
+                          <div className="w-px h-full bg-border absolute left-1/2" />
+                          <div className="flex-1 text-center">
+                            {attendance?.checkOut &&
+                              format(new Date(attendance.checkOut), "HH:mm")}
+                          </div>
+                        </div>
+                      </TableCell>
                     );
                   })}
               </TableRow>
