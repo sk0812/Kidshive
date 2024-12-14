@@ -6,28 +6,29 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   
   try {
-    const supabase = createMiddlewareClient({ 
-      req,
-      res
-    })
-    
+    const supabase = createMiddlewareClient({ req, res })
     const { data: { session }, error } = await supabase.auth.getSession()
     
-    if (!session || error) {
-      if (req.nextUrl.pathname.startsWith('/dashboard')) {
-        return NextResponse.redirect(new URL('/', req.url))
-      }
+    console.log('Middleware path:', req.nextUrl.pathname)
+    console.log('Session exists:', !!session)
+    if (error) console.error('Session error:', error)
+
+    if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
+      console.log('Redirecting to home: No session found')
+      return NextResponse.redirect(new URL('/', req.url))
     }
 
     return res
   } catch (e) {
-    console.error('Auth middleware error:', e)
+    console.error('Middleware error:', e)
     return res
   }
 }
 
+// Update matcher to only run on specific routes
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    '/dashboard/:path*',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 } 
