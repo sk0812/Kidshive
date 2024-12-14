@@ -1,35 +1,27 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
+import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient();
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const prisma = new PrismaClient()
 
 export async function GET(request: Request) {
-  // Get the authorization header from the request
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader) {
-    return NextResponse.json({ error: 'No authorization header' }, { status: 401 });
-  }
-
-  // Create Supabase admin client
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
   try {
-    // Verify the session
-    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    const cookieStore = cookies()
     
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createRouteHandlerClient({
+      cookies: () => cookieStore
+    })
+    
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError || !session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user from Prisma
     const prismaUser = await prisma.user.findUnique({
       where: {
-        email: user.email
+        email: session.user.email
       },
       select: {
         id: true,
@@ -38,17 +30,17 @@ export async function GET(request: Request) {
         name: true,
         phoneNumber: true
       }
-    });
+    })
 
     if (!prismaUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    return NextResponse.json(prismaUser);
+    return NextResponse.json(prismaUser)
   } catch (error) {
-    console.error('Error fetching user:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Error fetching user:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   } finally {
-    await prisma.$disconnect();
+    await prisma.$disconnect()
   }
 } 
