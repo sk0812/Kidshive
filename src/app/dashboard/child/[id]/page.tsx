@@ -34,6 +34,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { WeeklyCalendar } from "@/components/dashboard/calendar/WeeklyCalendar";
+
 interface ChildDetails {
   id: string;
   name: string;
@@ -413,13 +415,11 @@ export default function ChildDetailsPage() {
             <CardHeader>
               <CardTitle>Calendar</CardTitle>
               <CardDescription>
-                This is where the calendar content will go.
+                View and manage child's schedule
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[700px] flex items-center justify-center text-muted-foreground">
-                Calendar content coming soon...
-              </div>
+              <WeeklyCalendar />
             </CardContent>
           </Card>
         )}
