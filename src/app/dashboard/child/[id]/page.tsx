@@ -36,6 +36,8 @@ import { Label } from "@/components/ui/label";
 
 import { WeeklyCalendar } from "@/components/dashboard/calendar/WeeklyCalendar";
 import { useAuth } from "@/contexts/AuthContext";
+import { ConsentForm } from "@/components/ConsentForm/ConsentForm";
+import { AssistantConsentForm } from "@/components/ConsentForm/AssistantConsentForm";
 
 interface ChildDetails {
   id: string;
@@ -432,19 +434,50 @@ export default function ChildDetailsPage() {
         )}
 
         {activeTab === "consent-forms" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Consent Forms</CardTitle>
-              <CardDescription>
-                This is where the consent forms content will go.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[700px] flex items-center justify-center text-muted-foreground">
-                Consent forms content coming soon...
-              </div>
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Consent Forms</CardTitle>
+                <CardDescription>
+                  Review and provide consent for various activities and policies
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Complete Consent Form
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl">
+                    <ConsentForm onClose={() => {}} />
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Working with Assistants</CardTitle>
+                <CardDescription>
+                  Information and consent for assistant involvement in childcare
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Complete Assistant Consent Form
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl">
+                    <AssistantConsentForm onClose={() => {}} />
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>
